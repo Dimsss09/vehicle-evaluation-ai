@@ -1,0 +1,123 @@
+<!doctype html>
+<html lang="id">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Prediksi Keamanan Mobil AI</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+  </head>
+  <body>
+    <div class="scene" aria-hidden="true">
+      <div class="road-grid"></div>
+      <div class="light-beam beam-one"></div>
+      <div class="light-beam beam-two"></div>
+      <div class="scan-line"></div>
+    </div>
+
+    <main class="shell">
+      <section class="hero">
+        <div class="brand">
+          <div class="logo-mark" aria-hidden="true">
+            <span class="wheel left"></span>
+            <span class="wheel right"></span>
+          </div>
+          <div>
+            <p class="eyebrow">Random Forest AI</p>
+            <h1>Prediksi Keamanan Mobil</h1>
+          </div>
+        </div>
+        <p class="hero-copy">
+          Masukkan karakteristik mobil, lalu sistem akan memprediksi kelas kelayakan
+          berdasarkan model Random Forest dari dataset Car Evaluation.
+        </p>
+        <div class="metric-row">
+          <div>
+            <span>Akurasi Model</span>
+            <strong>{{ "%.2f"|format(metrics.accuracy * 100) }}%</strong>
+          </div>
+          <div>
+            <span>Data Latih/Uji</span>
+            <strong>{{ metrics.dataset_rows }} baris</strong>
+          </div>
+          <div>
+            <span>Decision Trees</span>
+            <strong>100</strong>
+          </div>
+        </div>
+      </section>
+
+      <section class="workspace">
+        <form class="predictor" method="post" action="{{ url_for('main.predict') }}" id="predict-form">
+          <div class="section-title">
+            <span>Input Mobil</span>
+            <button type="submit" class="predict-button">Prediksi</button>
+          </div>
+
+          <div class="field-grid">
+            {% for feature in features %}
+              <label class="field-card">
+                <span>{{ feature.replace("_", " ").title() }}</span>
+                <select name="{{ feature }}">
+                  {% for value in options[feature] %}
+                    <option value="{{ value }}" {% if current_values[feature] == value %}selected{% endif %}>{{ value }}</option>
+                  {% endfor %}
+                </select>
+              </label>
+            {% endfor %}
+          </div>
+        </form>
+
+        <aside class="result-panel {{ result.label.tone }}" id="result-panel">
+          <div class="result-header">
+            <span class="status-dot"></span>
+            <p>Hasil Prediksi AI</p>
+          </div>
+          <h2>{{ result.label.title }}</h2>
+          <p class="class-code">Kode kelas: {{ result.prediction }}</p>
+          <p class="result-copy">{{ result.label.description }}</p>
+          <div class="confidence">
+            <span>Confidence</span>
+            <strong>{{ "%.1f"|format(result.confidence * 100) }}%</strong>
+          </div>
+        </aside>
+      </section>
+
+      <section class="analytics">
+        <div class="panel">
+          <div class="section-title">
+            <span>Probabilitas Kelas</span>
+          </div>
+          <div class="bars" id="probability-bars">
+            {% for class_name, probability in result.probabilities.items() %}
+              <div class="bar-row">
+                <span>{{ class_name }}</span>
+                <div class="track"><i style="width: {{ probability * 100 }}%"></i></div>
+                <strong>{{ "%.1f"|format(probability * 100) }}%</strong>
+              </div>
+            {% endfor %}
+          </div>
+        </div>
+
+        <div class="panel">
+          <div class="section-title">
+            <span>Feature Importance</span>
+          </div>
+          <div class="bars">
+            {% for feature, score in metrics.feature_importances.items() %}
+              <div class="bar-row">
+                <span>{{ feature.replace("_", " ") }}</span>
+                <div class="track importance"><i style="width: {{ score * 320 }}%"></i></div>
+                <strong>{{ "%.3f"|format(score) }}</strong>
+              </div>
+            {% endfor %}
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <script src="{{ url_for('static', filename='js/app.js') }}"></script>
+  </body>
+</html>
